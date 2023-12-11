@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        #notesSection,
+        #completedNotes,
+        #categories {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        #noteInput,
+        #categoryInput,
+        #addNoteBtn {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .note {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .note span {
+            font-size: 12px;
+            color: #888;
+        }
+        .deleteBtn {
+            background-color: #ff6464;
+            color: #fff;
+            padding: 4px 8px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+        #completedNotes {
+            margin-top: 20px;
+            position: relative;
+        }
+        #completedList .note {
+            position: relative;
+        }
+        #categories {
+            margin-top: 20px;
+        }
+
+        /* Responsive Styles */
+        @media (min-width: 768px) {
+            #notesSection,
+            #completedNotes,
+            #categories {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 style="text-align: center; color: #333;">Notes Application</h1>
+
+    <div id="notesSection">
+        <h2>Notes</h2>
+        <input type="text" id="noteInput" placeholder="Enter your note...">
+        <input type="text" id="categoryInput" placeholder="Enter category...">
+        <button id="addNoteBtn" onclick="addNote()">Add Note</button>
+        <ul id="notesList"></ul>
+    </div>
+
+    <div id="completedNotes">
+        <h2>Completed Notes</h2>
+        <ul id="completedList"></ul>
+    </div>
+
+    <div id="categories">
+        <h2>Categories</h2>
+        <ul id="categoryList" onclick="deleteCategory(event)"></ul>
+    </div>
+
+    <script>
+        var noteCounter = 1; // Initialize note counter
+
+        function addNote() {
+            var noteInput = document.getElementById('noteInput');
+            var categoryInput = document.getElementById('categoryInput');
+            var notesList = document.getElementById('notesList');
+            var categoryList = document.getElementById('categoryList');
+
+            if (noteInput.value.trim() !== '') {
+                var currentDate = new Date();
+                var dateTime = currentDate.toLocaleString();
+
+                var newNote = document.createElement('li');
+                newNote.className = 'note';
+                newNote.innerHTML = `<div>${noteCounter}. <input type="checkbox" onclick="checkNote(event)"> <strong onclick="editNoteText(event)">${noteInput.value}</strong> <span>${dateTime}</span></div> 
+                                     <button class="deleteBtn" onclick="deleteNote(this)">Delete</button>`;
+                notesList.appendChild(newNote);
+                noteCounter++; // Increment note counter
+
+                // Check if the category already exists
+                var existingCategory = document.getElementById(categoryInput.value);
+                if (!existingCategory && categoryInput.value.trim() !== '') {
+                    var newCategory = document.createElement('li');
+                    newCategory.textContent = categoryInput.value;
+                    newCategory.id = categoryInput.value;
+                    categoryList.appendChild(newCategory);
+                }
+
+                noteInput.value = '';
+                categoryInput.value = '';
+            }
+        }
+
+        function deleteNote(button) {
+            var noteItem = button.parentNode;
+            noteItem.parentNode.removeChild(noteItem);
+            removeEmptyCategory(noteItem);
+        }
+
+        function removeEmptyCategory(noteItem) {
+            var category = noteItem.querySelector('strong').textContent;
+            var notesInCategory = document.querySelectorAll(`.note strong:contains('${category}')`);
+            if (notesInCategory.length === 0) {
+                var categoryToRemove = document.getElementById(category);
+                if (categoryToRemove) {
+                    categoryToRemove.parentNode.removeChild(categoryToRemove);
+                }
+            }
+        }
+
+        function editNoteText(event) {
+            var target = event.target;
+            var originalText = target.textContent;
+            var newText = prompt('Edit note:', originalText);
+            if (newText !== null && newText.trim() !== '') {
+                target.textContent = newText;
+
+                // Update the date and time
+                var dateSpan = target.nextElementSibling;
+                dateSpan.textContent = new Date().toLocaleString();
+            }
+        }
+
+        function checkNote(event) {
+            var checkbox = event.target;
+            var noteItem = checkbox.parentNode;
+            var noteText = noteItem.querySelector('strong');
+            var completedList = document.getElementById('completedList');
+
+            if (checkbox.checked) {
+                noteText.style.textDecoration = 'line-through';
+                // Move the checked note to the completed section
+                completedList.appendChild(noteItem);
+            } else {
+                noteText.style.textDecoration = 'none';
+                // Move the unchecked note back to the notes section
+                document.getElementById('notesList').appendChild(noteItem);
+            }
+        }
+
+        function deleteCategory(event) {
+            var target = event.target;
+            if (target.tagName === 'LI') {
+                var category = target.textContent;
+                var notesInCategory = document.querySelectorAll(`.note strong:contains('${category}')`);
+
+                // Remove notes in the category
+                notesInCategory.forEach(function (note) {
+                    note.parentNode.removeChild(note.parentNode);
+                });
+
+                // Remove the category
+                target.parentNode.removeChild(target);
+            }
+        }
+        jQuery.expr[':'].contains = function (a, i, m) {
+            return jQuery(a).text().toUpperCase()
+                .indexOf(m[3].toUpperCase()) >= 0;
+        };
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+</body>
+</html>
+
+@SpyTalk
